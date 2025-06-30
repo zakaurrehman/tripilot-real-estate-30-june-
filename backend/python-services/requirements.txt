@@ -1,0 +1,9 @@
+# backend/python-services/requirements.txt
+
+Flask
+pytesseract
+Pillow
+pdf2image
+numpy
+opencv-python
+gunicorn

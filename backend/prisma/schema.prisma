@@ -1,0 +1,119 @@
+// backend/prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  password     String?
+  subscription String   @default("trial")
+  verticalType String   @default("real-estate")
+  lapisUsed    Int      @default(0)
+  lapisTotal   Int      @default(210)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  documents        Document[]
+  rehabScopes      RehabScope[]
+  gcMatches        GcMatch[]
+  factSheets       FactSheet[]
+  lapisTransactions LapisTransaction[]
+  conversations    Conversation[]
+}
+
+model Document {
+  id              String   @id @default(cuid())
+  filename        String
+  type            String
+  uploadedAt      DateTime @default(now())
+  status          String   @default("processing")
+  hash            String
+  extractedFields Json?
+  error           String?
+  
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+  
+  @@index([userId])
+  @@index([hash])
+}
+
+model RehabScope {
+  id          String   @id @default(cuid())
+  propertyId  String
+  scope       Json
+  targetROI   Float
+  budgetCap   Float
+  pdfPath     String?
+  createdAt   DateTime @default(now())
+  
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+  
+  gcMatches GcMatch[]
+  
+  @@index([userId])
+}
+
+model GcMatch {
+  id           String   @id @default(cuid())
+  contractors  Json
+  rfpsSent     Json
+  matchDate    DateTime @default(now())
+  
+  rehabScopeId String
+  rehabScope   RehabScope @relation(fields: [rehabScopeId], references: [id])
+  
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+  
+  @@index([userId])
+}
+
+model FactSheet {
+  id         String   @id @default(cuid())
+  propertyId String
+  content    Json
+  pdfPath    String?
+  createdAt  DateTime @default(now())
+  
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+  
+  @@index([userId])
+}
+
+model LapisTransaction {
+  id          String   @id @default(cuid())
+  taskType    String
+  amount      Int
+  balance     Int
+  description String?
+  createdAt   DateTime @default(now())
+  
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+  
+  @@index([userId])
+  @@index([taskType])
+}
+
+model Conversation {
+  id        String   @id @default(cuid())
+  messages  Json     @default("[]")
+  context   Json     @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+  
+  @@index([userId])
+}
